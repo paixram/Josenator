@@ -29,6 +29,17 @@ public class DecisionTree {
         public boolean isLeaf() {
             return yesBranch == null && noBranch == null;
         }
+        public String getQuestionOrAnimal() {
+            return questionOrAnimal;
+        }
+
+        public DecisionTreeNode getYesBranch() {
+            return yesBranch;
+        }
+
+        public DecisionTreeNode getNoBranch() {
+            return noBranch;
+        }
     }
     
     private DecisionTreeNode root;
@@ -81,6 +92,9 @@ public class DecisionTree {
         }
 
         return currentNode;
+    }
+    public DecisionTreeNode getRoot() {
+        return root;
     }
     
     public void printTree() {
