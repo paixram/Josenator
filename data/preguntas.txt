@@ -1,0 +1,30 @@
+¿Es este animal un mamífero?
+¿Es este animal un carnívoro?
+¿Es este animal acuático?
+¿Vuela este animal?
+¿Tiene este animal plumas?
+¿Es venenoso este animal?
+¿Es este animal una serpiente?
+¿Es este animal un insecto?
+¿Es este animal herbívoro?
+¿Es este animal nocturno?
+¿Es este animal un primate?
+¿Tiene este animal rayas?
+¿Tiene este animal manchas?
+¿Es este animal un reptil?
+¿Vive este animal en la selva?
+¿Es este animal un roedor?
+¿Puede este animal cambiar de color?
+¿Es este animal un pez?
+¿Es este animal un anfibio?
+¿Tiene este animal cuernos?
+¿Tiene este animal una concha?
+¿Tiene este animal garras?
+¿Tiene este animal una larga cola?
+¿Es este animal doméstico?
+¿Es este animal un felino?
+¿Es este animal un canino?
+¿Tiene este animal aletas?
+¿Es este animal grande?
+¿Es este animal pequeño?
+¿Es este animal mediano?
