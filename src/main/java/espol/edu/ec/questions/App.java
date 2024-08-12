@@ -54,7 +54,7 @@ public class App extends Application {
             String workingDir = System.getProperty("user.dir");
         
             // Concatenar el directorio 'data'
-            String dataDir = workingDir + "/data/logode20preguntas.jpg";
+            String dataDir = workingDir + "/data/logode20preguntas.jpeg";
             System.out.println("DIR: " + dataDir);
             File file = new File(dataDir);
             Image image = new Image(file.toURI().toString());
@@ -64,7 +64,7 @@ public class App extends Application {
                 logo = new ImageView(image);
                 logo.setFitWidth(250);  // Establecer ancho
                 logo.setFitHeight(250);  // Establecer altura
-                logo.setEffect(new GaussianBlur(3)); // Añadir un pequeño desenfoque
+                logo.setEffect(new GaussianBlur(1)); // Añadir un pequeño desenfoque
             }
         } catch (Exception e) {
             e.printStackTrace();
