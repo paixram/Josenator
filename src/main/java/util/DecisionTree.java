@@ -19,16 +19,21 @@ public class DecisionTree {
         String questionOrAnimal;
         DecisionTreeNode yesBranch;
         DecisionTreeNode noBranch;
+        boolean isLeaf;
+        List<String> possibleAnimals;
 
         public DecisionTreeNode(String questionOrAnimal) {
             this.questionOrAnimal = questionOrAnimal;
             this.yesBranch = null;
             this.noBranch = null;
+            this.isLeaf = false;
+            this.possibleAnimals = new ArrayList<>();
         }
 
         public boolean isLeaf() {
-            return yesBranch == null && noBranch == null;
+            return isLeaf;
         }
+
         public String getQuestionOrAnimal() {
             return questionOrAnimal;
         }
@@ -40,36 +45,51 @@ public class DecisionTree {
         public DecisionTreeNode getNoBranch() {
             return noBranch;
         }
+
+        public List<String> getPossibleAnimals() {
+            return possibleAnimals;
+        }
     }
-    
+
     private DecisionTreeNode root;
     private List<String> questions;
     private List<String[]> answers;
-    
-    public DecisionTree(String questionsFile, String answersFile) {
+    private int maxQuestions;
+
+    public DecisionTree(String questionsFile, String answersFile, int maxQuestions) {
+        this.maxQuestions = maxQuestions;
         questions = DataLoader.loadQuestions(questionsFile);
         answers = DataLoader.loadAnswers(answersFile);
         root = buildTree(0, IntStream.range(0, answers.size()).boxed().collect(Collectors.toList()));
     }
-    
+
     public DecisionTreeNode buildTree(int questionIndex, List<Integer> currentIndices) {
         if (currentIndices.isEmpty()) {
-            return null; // No hay respuestas que procesar.
+            return null;
         }
-        
-        if (questionIndex >= questions.size()) {
-            // Asumimos que todas las respuestas en `currentIndices` son del mismo animal si no quedan preguntas.
-            String animal = answers.get(currentIndices.get(0))[0]; // Tomar el nombre del animal del primer índice.
-            return new DecisionTreeNode(animal); // Crear nodo hoja con el nombre del animal.
+
+        if (questionIndex >= questions.size() || questionIndex >= maxQuestions) {
+            if (currentIndices.size() == 1) {
+                // Si queda solo un animal en las respuestas posibles, se ha adivinado
+                String animal = answers.get(currentIndices.get(0))[0];
+                DecisionTreeNode leafNode = new DecisionTreeNode(animal);
+                leafNode.isLeaf = true;
+                return leafNode;
+            } else {
+                // Si hay varios animales posibles, la computadora no puede decidir
+                DecisionTreeNode uncertainNode = new DecisionTreeNode("No estoy seguro, pero podría ser uno de estos animales: ");
+                uncertainNode.possibleAnimals = currentIndices.stream()
+                        .map(index -> answers.get(index)[0])
+                        .collect(Collectors.toList());
+                return uncertainNode;
+            }
         }
 
         DecisionTreeNode currentNode = new DecisionTreeNode(questions.get(questionIndex));
 
-        // Filtrar respuestas para la rama 'Sí' y 'No'
         List<Integer> yesBranchIndices = new ArrayList<>();
         List<Integer> noBranchIndices = new ArrayList<>();
-        
-        System.out.println("Question size: " + questions.size());
+
         for (Integer index : currentIndices) {
             if (answers.get(index)[questionIndex + 1].equals("si")) {
                 yesBranchIndices.add(index);
@@ -78,43 +98,18 @@ public class DecisionTree {
             }
         }
 
-        // Recursivamente construir ramas 'sí' y 'no'
         if (!yesBranchIndices.isEmpty()) {
             currentNode.yesBranch = buildTree(questionIndex + 1, yesBranchIndices);
-        } else if (yesBranchIndices.isEmpty() && questionIndex + 1 == questions.size()) {
-            currentNode.yesBranch = new DecisionTreeNode("No hay animal que coincida.");
         }
 
         if (!noBranchIndices.isEmpty()) {
             currentNode.noBranch = buildTree(questionIndex + 1, noBranchIndices);
-        } else if (noBranchIndices.isEmpty() && questionIndex + 1 == questions.size()) {
-            currentNode.noBranch = new DecisionTreeNode("No hay animal que coincida.");
         }
 
         return currentNode;
     }
+
     public DecisionTreeNode getRoot() {
         return root;
-    }
-    
-    public void printTree() {
-        printTree(root, "", "Root");
-    }
-
-    // Método recursivo que imprime cada nodo con la indentación correspondiente
-    private void printTree(DecisionTreeNode node, String prefix, String childLabel) {
-        if (node == null) {
-            System.out.println(prefix + childLabel + ": null");
-            return;
-        }
-
-        // Imprimir la pregunta o el nombre del animal con un prefijo que muestra la relación
-        System.out.println(prefix + childLabel + ": " + node.questionOrAnimal);
-
-        // Recursivamente imprimir las ramas 'sí' y 'no' con mayor indentación
-        if (node.yesBranch != null || node.noBranch != null) {
-            printTree(node.yesBranch, prefix + "    ", "Yes");
-            printTree(node.noBranch, prefix + "    ", "No");
-        }
     }
 }
