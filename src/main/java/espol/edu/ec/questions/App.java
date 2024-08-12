@@ -1,6 +1,7 @@
 package espol.edu.ec.questions;
 
 
+import java.io.File;
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -50,7 +51,13 @@ public class App extends Application {
         // Prueba de carga de la imagen
         ImageView logo = null;
         try {
-            Image image = new Image("file:/C:/Users/José Miguel/OneDrive/Documents/NetBeansProjects/Josenator/src/images/logode20preguntas.jpg");
+            String workingDir = System.getProperty("user.dir");
+        
+            // Concatenar el directorio 'data'
+            String dataDir = workingDir + "/data/logode20preguntas.jpg";
+            System.out.println("DIR: " + dataDir);
+            File file = new File(dataDir);
+            Image image = new Image(file.toURI().toString());
             if (image.isError()) {
                 System.out.println("Error loading image: " + image.getException());
             } else {
