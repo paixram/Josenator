@@ -11,7 +11,6 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.effect.DropShadow;
-import javafx.scene.effect.GaussianBlur;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.Background;
@@ -41,18 +40,18 @@ public class App extends Application {
     private Button animalThoughtButton;
     private Stage primaryStage;
 
+    private int maxQuestions; // Número máximo de preguntas permitido
+    private int questionCount; // Contador de preguntas realizadas
+
     @Override
     public void start(Stage stage) {
         this.primaryStage = stage;
 
-        // Configuración inicial de la ventana
         stage.setTitle("Árbol de Decisiones - Juego de Adivinanzas");
 
         ImageView logo = null;
         try {
             String workingDir = System.getProperty("user.dir");
-        
-            
             String dataDir = workingDir + "/data/logode20preguntas.jpeg";
             System.out.println("DIR: " + dataDir);
             File file = new File(dataDir);
@@ -61,9 +60,8 @@ public class App extends Application {
                 System.out.println("Error loading image: " + image.getException());
             } else {
                 logo = new ImageView(image);
-                logo.setFitWidth(260);  
-                logo.setFitHeight(260);  
-                
+                logo.setFitWidth(260);
+                logo.setFitHeight(260);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -73,7 +71,6 @@ public class App extends Application {
             logo = new ImageView();
         }
 
-        
         Label instructionLabel = new Label("Piensa en un animal");
         instructionLabel.setStyle("-fx-font-family: 'Arial'; -fx-font-size: 18px; -fx-text-fill: #444;-fx-font-weight: bold;");
         instructionLabel.setAlignment(Pos.CENTER);
@@ -98,7 +95,6 @@ public class App extends Application {
         startGameButton.setDisable(true);
         startGameButton.setOnAction(e -> startGame());
 
-        
         VBox layout = new VBox(20, logo, instructionLabel, animalThoughtButton, numQuestionsField, startGameButton);
         layout.setPadding(new Insets(20));
         layout.setAlignment(Pos.CENTER);
@@ -119,31 +115,32 @@ public class App extends Application {
     private void applyButtonStyle(Button button) {
         button.setStyle("-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-size: 14px; -fx-background-radius: 10;-fx-font-weight: bold;-fx-font-family: 'Arial';");
         DropShadow shadow = new DropShadow();
-        shadow.setColor(Color.rgb(0, 0, 0, 0.25)); 
+        shadow.setColor(Color.rgb(0, 0, 0, 0.25));
         shadow.setOffsetX(3);
         shadow.setOffsetY(3);
         button.setEffect(shadow);
 
-        // Efectos
         button.setOnMouseEntered(e -> {
             button.setStyle("-fx-background-color: #45a049; -fx-text-fill: white; -fx-font-size: 14px; -fx-background-radius: 10;");
-            button.setScaleX(1.05);  
+            button.setScaleX(1.05);
             button.setScaleY(1.05);
         });
 
         button.setOnMouseExited(e -> {
             button.setStyle("-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-size: 14px; -fx-background-radius: 10;");
-            button.setScaleX(1);  
+            button.setScaleX(1);
             button.setScaleY(1);
         });
     }
 
     private void startGame() {
         try {
-            int maxQuestions = Integer.parseInt(numQuestionsField.getText());
+            maxQuestions = Integer.parseInt(numQuestionsField.getText());
+            questionCount = 0; // Reinicia el contador de preguntas
+
             decisionTree = new DecisionTree("data/preguntas.txt", "data/respuestas.txt");
             currentNode = decisionTree.getRoot();
-            openGameWindow();  
+            openGameWindow();
         } catch (NumberFormatException e) {
             showAlert("Error", "Por favor, ingresa un número válido de preguntas");
         }
@@ -168,7 +165,7 @@ public class App extends Application {
         noButton.setOnAction(e -> handleNo(gameStage));
 
         HBox buttonBox = new HBox(20, yesButton, noButton);
-        buttonBox.setAlignment(Pos.CENTER);  
+        buttonBox.setAlignment(Pos.CENTER);
 
         VBox gameLayout = new VBox(20, questionLabel, buttonBox);
         gameLayout.setPadding(new Insets(20));
@@ -186,54 +183,67 @@ public class App extends Application {
         gameStage.setScene(gameScene);
         gameStage.show();
 
-        updateQuestion(); 
+        updateQuestion();
     }
 
     private void updateQuestion() {
-        if (currentNode != null) {
-            questionLabel.setText(currentNode.getQuestionOrAnimal());
-            yesButton.setDisable(false);
-            noButton.setDisable(false);
+        if (questionCount < maxQuestions) {
+            if (currentNode != null && !currentNode.isLeaf()) {
+                questionLabel.setText(currentNode.getQuestionOrAnimal());
+                questionCount++; // Incrementar el contador de preguntas
+                yesButton.setDisable(false);
+                noButton.setDisable(false);
+            } else {
+                tryToGuessAnimal();
+            }
         } else {
-            questionLabel.setText("¡Juego terminado!");
-            yesButton.setDisable(true);
-            noButton.setDisable(true);
-            showPlayAgainButton();
+            tryToGuessAnimal();
         }
+    }
+
+    private void tryToGuessAnimal() {
+        if (currentNode != null && currentNode.isLeaf()) {
+            showAlert("Resultado", "Creo que estás pensando en un " + currentNode.getQuestionOrAnimal() + "!");
+        } else {
+            showAlert("Resultado", "No se encontró un animal con estas características.");
+        }
+        endGame(null); // Llamar a endGame para mostrar el botón de "Volver a Jugar"
     }
 
     private void handleYes(Stage gameStage) {
-        if (currentNode.getYesBranch() != null) {
+        if (currentNode != null && currentNode.getYesBranch() != null) {
             currentNode = currentNode.getYesBranch();
-            updateQuestion();
-        } else {
-            showAlert("Resultado", "No se encontró un animal con estas características");
-            endGame(gameStage);
         }
+        updateQuestion();
     }
 
     private void handleNo(Stage gameStage) {
-        if (currentNode.getNoBranch() != null) {
+        if (currentNode != null && currentNode.getNoBranch() != null) {
             currentNode = currentNode.getNoBranch();
-            updateQuestion();
-        } else {
-            showAlert("Resultado", "No se encontró un animal con estas características");
-            endGame(gameStage);
         }
+        updateQuestion();
     }
 
     private void showPlayAgainButton() {
+        VBox parent = (VBox) questionLabel.getParent();
+
+        // Verifica si el botón "Volver a Jugar" ya ha sido agregado
+        for (var node : parent.getChildren()) {
+            if (node instanceof Button && ((Button) node).getText().equals("Volver a Jugar")) {
+                return; // No agregar el botón nuevamente
+            }
+        }
+
         Button playAgainButton = new Button("Volver a Jugar");
         applyButtonStyle(playAgainButton);
 
         playAgainButton.setOnAction(e -> {
-            primaryStage.show();  // Muestra la ventana principal nuevamente
+            primaryStage.show();
             Stage gameStage = (Stage) playAgainButton.getScene().getWindow();
-            gameStage.close();  // Cierra la ventana de juego
-            resetMainWindow();  // Resetea la ventana principal
+            gameStage.close();
+            resetMainWindow();
         });
 
-        VBox parent = (VBox) questionLabel.getParent();
         parent.getChildren().add(playAgainButton);
     }
 
