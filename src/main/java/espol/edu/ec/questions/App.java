@@ -48,12 +48,11 @@ public class App extends Application {
         // Configuración inicial de la ventana
         stage.setTitle("Árbol de Decisiones - Juego de Adivinanzas");
 
-        // Prueba de carga de la imagen
         ImageView logo = null;
         try {
             String workingDir = System.getProperty("user.dir");
         
-            // Concatenar el directorio 'data'
+            
             String dataDir = workingDir + "/data/logode20preguntas.jpeg";
             System.out.println("DIR: " + dataDir);
             File file = new File(dataDir);
@@ -62,9 +61,9 @@ public class App extends Application {
                 System.out.println("Error loading image: " + image.getException());
             } else {
                 logo = new ImageView(image);
-                logo.setFitWidth(250);  // Establecer ancho
-                logo.setFitHeight(250);  // Establecer altura
-                logo.setEffect(new GaussianBlur(1)); // Añadir un pequeño desenfoque
+                logo.setFitWidth(260);  
+                logo.setFitHeight(260);  
+                
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -112,7 +111,6 @@ public class App extends Application {
         )));
         layout.setStyle("-fx-font-family: 'Arial';");
 
-        // Configuración de la escena y el stage
         Scene scene = new Scene(layout, 500, 500);
         stage.setScene(scene);
         stage.show();
@@ -121,7 +119,7 @@ public class App extends Application {
     private void applyButtonStyle(Button button) {
         button.setStyle("-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-size: 14px; -fx-background-radius: 10;-fx-font-weight: bold;-fx-font-family: 'Arial';");
         DropShadow shadow = new DropShadow();
-        shadow.setColor(Color.rgb(0, 0, 0, 0.25)); // Sombra negra con transparencia
+        shadow.setColor(Color.rgb(0, 0, 0, 0.25)); 
         shadow.setOffsetX(3);
         shadow.setOffsetY(3);
         button.setEffect(shadow);
@@ -129,13 +127,13 @@ public class App extends Application {
         // Efectos
         button.setOnMouseEntered(e -> {
             button.setStyle("-fx-background-color: #45a049; -fx-text-fill: white; -fx-font-size: 14px; -fx-background-radius: 10;");
-            button.setScaleX(1.05);  // Agranda el botón un 5% al pasar el mouse
+            button.setScaleX(1.05);  
             button.setScaleY(1.05);
         });
 
         button.setOnMouseExited(e -> {
             button.setStyle("-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-size: 14px; -fx-background-radius: 10;");
-            button.setScaleX(1);  // Restaura el tamaño original al quitar el mouse
+            button.setScaleX(1);  
             button.setScaleY(1);
         });
     }
@@ -145,7 +143,7 @@ public class App extends Application {
             int maxQuestions = Integer.parseInt(numQuestionsField.getText());
             decisionTree = new DecisionTree("data/preguntas.txt", "data/respuestas.txt");
             currentNode = decisionTree.getRoot();
-            openGameWindow();  // Abre la nueva ventana con el juego
+            openGameWindow();  
         } catch (NumberFormatException e) {
             showAlert("Error", "Por favor, ingresa un número válido de preguntas");
         }
