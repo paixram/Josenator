@@ -50,6 +50,7 @@ public class App extends Application {
     private int gamesPlayed = 0;
     private int correctGuesses = 0;
     private int totalQuestionsAsked = 0;
+    private int maxQuestions;
 
     @Override
     public void start(Stage stage) {
@@ -97,7 +98,18 @@ public class App extends Application {
         startGameButton = new Button("Iniciar Juego");
         applyButtonStyle(startGameButton);
         startGameButton.setDisable(true);
-        startGameButton.setOnAction(e -> startGame());
+        startGameButton.setOnAction(e -> {
+            try {
+                int maxQuestions = Integer.parseInt(numQuestionsField.getText().trim());
+                if (maxQuestions <= 0) {
+                    showAlert("Error", "Ingresa un número válido mayor que cero.");
+                } else {
+                    startGame(maxQuestions);
+                }
+            } catch (NumberFormatException ex) {
+                showAlert("Error", "Por favor, ingresa un número válido de preguntas.");
+            }
+        });
 
         historyArea = new TextArea();
         historyArea.setEditable(false);
@@ -142,17 +154,14 @@ public class App extends Application {
         });
     }
 
-    private void startGame() {
-        try {
-            int maxQuestions = Integer.parseInt(numQuestionsField.getText());
-            decisionTree = new DecisionTree("data/preguntas.txt", "data/respuestas.txt", maxQuestions);
-            currentNode = decisionTree.getRoot();
-            questionHistory.clear(); 
-            gamesPlayed++; 
-            openGameWindow();  
-        } catch (NumberFormatException e) {
-            showAlert("Error", "Por favor, ingresa un número válido de preguntas");
-        }
+    private void startGame(int maxQuestions) {
+        decisionTree = new DecisionTree("data/preguntas.txt", "data/respuestas.txt");
+        currentNode = decisionTree.getRoot();
+        questionHistory.clear(); 
+        gamesPlayed++; 
+        totalQuestionsAsked = 0;  // Reiniciar el conteo de preguntas para este juego.
+        this.maxQuestions = maxQuestions; // Almacenar el máximo de preguntas permitidas.
+        openGameWindow();
     }
 
     private void openGameWindow() {
@@ -196,43 +205,69 @@ public class App extends Application {
     }
 
     private void updateQuestion() {
-        if (currentNode != null && !currentNode.isLeaf()) {
+        if (currentNode != null && !currentNode.isLeaf() && totalQuestionsAsked < maxQuestions) {
             questionLabel.setText(currentNode.getQuestionOrAnimal());
-            questionHistory.add(currentNode.getQuestionOrAnimal()); 
+            questionHistory.add(currentNode.getQuestionOrAnimal());
             yesButton.setDisable(false);
             noButton.setDisable(false);
         } else {
-            if (currentNode != null && currentNode.isLeaf()) {
-                showAlert("Resultado", "¡He adivinado! El animal es un " + currentNode.getQuestionOrAnimal());
-                correctGuesses++; 
-            } else if (currentNode != null && !currentNode.getPossibleAnimals().isEmpty()) {
-                String animals = String.join(", ", currentNode.getPossibleAnimals());
-                showAlert("Resultado", "No estoy seguro, pero podría ser uno de estos animales: " + animals);
-            } else {
+            List<String> possibleAnimals = getPossibleAnimals(currentNode);
+            if (possibleAnimals.isEmpty()) {
                 showAlert("Resultado", "No se encontró un animal con estas características.");
+            } else {
+                String message = "No estoy seguro, pero el animal pensado podría ser uno de los siguientes: " + String.join(", ", possibleAnimals);
+                showAlert("Resultado", message);
             }
             endGame();
         }
     }
 
-    private void handleYes(Stage gameStage) {
-        if (currentNode.getYesBranch() != null) {
-            currentNode = currentNode.getYesBranch();
-            totalQuestionsAsked++; 
-            updateQuestion();
+   private List<String> getPossibleAnimals(DecisionTree.DecisionTreeNode node) {
+        List<String> animals = new ArrayList<>();
+        if (node.isLeaf()) {
+            // Añadir sólo si el nodo hoja no contiene la frase "No hay animal que coincida"
+            if (!node.getQuestionOrAnimal().equals("No hay animal que coincida.")) {
+                animals.add(node.getQuestionOrAnimal());
+            }
         } else {
-            showAlert("Resultado", "No se encontró un animal con estas características.");
+            if (node.getYesBranch() != null) {
+                animals.addAll(getPossibleAnimals(node.getYesBranch()));
+            }
+            if (node.getNoBranch() != null) {
+                animals.addAll(getPossibleAnimals(node.getNoBranch()));
+            }
+        }
+        return animals;
+    }
+
+    private void handleYes(Stage gameStage) {
+        if (totalQuestionsAsked < maxQuestions) {
+            if (currentNode.getYesBranch() != null) {
+                currentNode = currentNode.getYesBranch();
+                totalQuestionsAsked++;
+                updateQuestion();
+            } else {
+                showAlert("Resultado", "No se encontró un animal con estas características.");
+                endGame();
+            }
+        } else {
+            showAlert("Resultado", "Se alcanzó el límite de preguntas.");
             endGame();
         }
     }
 
     private void handleNo(Stage gameStage) {
-        if (currentNode.getNoBranch() != null) {
-            currentNode = currentNode.getNoBranch();
-            totalQuestionsAsked++; 
-            updateQuestion();
+        if (totalQuestionsAsked < maxQuestions) {
+            if (currentNode.getNoBranch() != null) {
+                currentNode = currentNode.getNoBranch();
+                totalQuestionsAsked++;
+                updateQuestion();
+            } else {
+                showAlert("Resultado", "No se encontró un animal con estas características.");
+                endGame();
+            }
         } else {
-            showAlert("Resultado", "No se encontró un animal con estas características.");
+            showAlert("Resultado", "Se alcanzó el límite de preguntas.");
             endGame();
         }
     }
