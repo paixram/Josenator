@@ -62,8 +62,8 @@ public class App extends Application {
                 System.out.println("Error loading image: " + image.getException());
             } else {
                 logo = new ImageView(image);
-                logo.setFitWidth(300);  // Establecer ancho
-                logo.setFitHeight(300);  // Establecer altura
+                logo.setFitWidth(250);  // Establecer ancho
+                logo.setFitHeight(250);  // Establecer altura
                 logo.setEffect(new GaussianBlur(3)); // Añadir un pequeño desenfoque
             }
         } catch (Exception e) {
