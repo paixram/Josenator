@@ -144,6 +144,7 @@ public class App extends Application {
         try {
             int maxQuestions = Integer.parseInt(numQuestionsField.getText());
             decisionTree = new DecisionTree("data/preguntas.txt", "data/respuestas.txt");
+            decisionTree.printTree();
             currentNode = decisionTree.getRoot();
             openGameWindow();  // Abre la nueva ventana con el juego
         } catch (NumberFormatException e) {
