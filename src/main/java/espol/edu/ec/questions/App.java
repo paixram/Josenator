@@ -2,6 +2,8 @@ package espol.edu.ec.questions;
 
 
 import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import javafx.application.Application;
@@ -9,8 +11,10 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.effect.DropShadow;
@@ -26,7 +30,6 @@ import javafx.scene.paint.LinearGradient;
 import javafx.scene.paint.Stop;
 import javafx.stage.Stage;
 import util.DecisionTree;
-
 
 /**
  * JavaFX App
@@ -209,12 +212,15 @@ public class App extends Application {
             questionHistory.add(currentNode.getQuestionOrAnimal());
             yesButton.setDisable(false);
             noButton.setDisable(false);
+        } else if (currentNode != null && currentNode.isLeaf()) {
+            showAlert("Resultado", "El animal que pensaste es: " + currentNode.getQuestionOrAnimal());
+            endGame();
         } else {
             List<String> possibleAnimals = getPossibleAnimals(currentNode);
             if (possibleAnimals.isEmpty()) {
-                showAlert("Resultado", "No se encontró un animal con estas características.");
+                showAddAnimalPrompt(); 
             } else {
-                showPossibleAnimals(possibleAnimals);
+                showPossibleAnimals(possibleAnimals); 
             }
             endGame();
         }
@@ -223,7 +229,7 @@ public class App extends Application {
     private List<String> getPossibleAnimals(DecisionTree.DecisionTreeNode node) {
         List<String> animals = new ArrayList<>();
         if (node.isLeaf()) {
-            if (!node.getQuestionOrAnimal().equals("No hay animal que coincida.")) {
+            if (!node.getQuestionOrAnimal().equals("No hay animal que coincida")) {
                 animals.add(node.getQuestionOrAnimal());
             }
         } else {
@@ -253,7 +259,30 @@ public class App extends Application {
             animalsBox.getChildren().add(animalLabel);
         }
 
-        VBox layout = new VBox(20, resultLabel, animalsBox);
+        ScrollPane scrollPane = new ScrollPane(animalsBox);
+        scrollPane.setFitToWidth(true);
+        scrollPane.setPrefViewportHeight(200);
+
+        Label addAnimalPrompt = new Label("El animal que pensaste no es uno de estos. ¿Deseas agregarlo?");
+        addAnimalPrompt.setStyle("-fx-font-family: 'Arial'; -fx-font-size: 16px;");
+        addAnimalPrompt.setAlignment(Pos.CENTER);
+
+        Button yesButton = new Button("Sí");
+        Button noButton = new Button("No");
+        applyButtonStyle(yesButton);
+        applyButtonStyle(noButton);
+
+        yesButton.setOnAction(e -> {
+            animalsStage.close();
+            askForNewAnimal();
+        });
+
+        noButton.setOnAction(e -> animalsStage.close());
+
+        HBox buttonsBox = new HBox(20, yesButton, noButton);
+        buttonsBox.setAlignment(Pos.CENTER);
+
+        VBox layout = new VBox(20, resultLabel, scrollPane, addAnimalPrompt, buttonsBox);
         layout.setPadding(new Insets(20));
         layout.setAlignment(Pos.CENTER);
         layout.setBackground(new Background(new BackgroundFill(
@@ -265,11 +294,128 @@ public class App extends Application {
         )));
         layout.setStyle("-fx-font-family: 'Arial';");
 
-        Scene scene = new Scene(layout, 600, 200 + possibleAnimals.size() * 30); 
+        Scene scene = new Scene(layout, 600, 400);
         animalsStage.setScene(scene);
-        animalsStage.showAndWait();  
+        animalsStage.showAndWait();
     }
 
+    private void showAddAnimalPrompt() {
+        Stage addAnimalStage = new Stage();
+        addAnimalStage.setTitle("Agregar Animal");
+
+        Label instructionLabel = new Label("El animal que pensaste no es uno de estos. ¿Deseas agregarlo?");
+        instructionLabel.setStyle("-fx-font-family: 'Arial'; -fx-font-size: 16px;");
+
+        Button yesButton = new Button("Sí");
+        Button noButton = new Button("No");
+        applyButtonStyle(yesButton);
+        applyButtonStyle(noButton);
+
+        yesButton.setOnAction(e -> {
+            addAnimalStage.close();
+            askForNewAnimal();
+        });
+
+        noButton.setOnAction(e -> addAnimalStage.close());
+
+        VBox layout = new VBox(20, instructionLabel, yesButton, noButton);
+        layout.setPadding(new Insets(20));
+        layout.setAlignment(Pos.CENTER);
+        layout.setBackground(new Background(new BackgroundFill(
+                new LinearGradient(0, 0, 0, 1, true, null,
+                        new Stop(0, Color.web("#f0f4f7")),
+                        new Stop(1, Color.web("#d9e2ec"))
+                ),
+                CornerRadii.EMPTY, Insets.EMPTY
+        )));
+        layout.setStyle("-fx-font-family: 'Arial';");
+
+        Scene scene = new Scene(layout, 400, 200);
+        addAnimalStage.setScene(scene);
+        addAnimalStage.showAndWait();
+    }
+
+    private void askForNewAnimal() {
+    Stage newAnimalStage = new Stage();
+    newAnimalStage.setTitle("Agregar Nuevo Animal");
+
+    VBox questionsBox = new VBox(15);
+    questionsBox.setPadding(new Insets(10));
+    questionsBox.setAlignment(Pos.TOP_CENTER);
+
+    List<TextField> answerFields = new ArrayList<>();
+    List<String> questions = decisionTree.getQuestions();
+
+    for (String question : questions) {
+        Label questionLabel = new Label(question);
+        questionLabel.setStyle("-fx-font-family: 'Arial'; -fx-font-size: 14px;");
+        questionLabel.setWrapText(true);
+
+        TextField answerField = new TextField();
+        answerField.setPromptText("Ingrese 'sí' o 'no'");
+        answerField.setStyle("-fx-font-family: 'Arial'; -fx-font-size: 14px;");
+        answerField.setPrefWidth(100);
+        answerField.setDisable(false); // Asegura que el campo de texto esté habilitado
+        answerFields.add(answerField);
+
+        VBox questionBox = new VBox(5, questionLabel, answerField);
+        questionBox.setAlignment(Pos.CENTER_LEFT);
+        questionsBox.getChildren().add(questionBox);
+    }
+
+    ScrollPane scrollPane = new ScrollPane(questionsBox);
+    scrollPane.setFitToWidth(true);
+    scrollPane.setFitToHeight(false); // Permitir ajuste solo en ancho
+    scrollPane.setPrefViewportHeight(300); 
+    scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+    scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+
+    Button saveButton = new Button("Guardar Animal");
+    applyButtonStyle(saveButton);
+
+    saveButton.setOnAction(e -> {
+        List<String> newAnimalAnswers = new ArrayList<>();
+        for (TextField answerField : answerFields) {
+            String answer = answerField.getText().trim().toLowerCase();
+            if (answer.equals("sí") || answer.equals("si")) {
+                newAnimalAnswers.add("si");
+            } else if (answer.equals("no")) {
+                newAnimalAnswers.add("no");
+            } else {
+                showAlert("Error", "Por favor, ingrese 'sí' o 'no' en todas las preguntas.");
+                return;
+            }
+        }
+        saveNewAnimal(newAnimalAnswers);
+        newAnimalStage.close();
+    });
+
+    VBox layout = new VBox(20, scrollPane, saveButton);
+    layout.setPadding(new Insets(20));
+    layout.setAlignment(Pos.CENTER);
+    layout.setBackground(new Background(new BackgroundFill(
+            new LinearGradient(0, 0, 0, 1, true, null,
+                    new Stop(0, Color.web("#f0f4f7")),
+                    new Stop(1, Color.web("#d9e2ec"))
+            ),
+            CornerRadii.EMPTY, Insets.EMPTY
+    )));
+    layout.setStyle("-fx-font-family: 'Arial';");
+
+    Scene scene = new Scene(layout, 600, 400);
+    newAnimalStage.setScene(scene);
+    newAnimalStage.showAndWait();
+}
+
+
+    private void saveNewAnimal(List<String> newAnimalAnswers) {
+        try (FileWriter writer = new FileWriter("data/respuestas.txt", true)) {
+            String newAnimalData = String.join(" ", newAnimalAnswers);
+            writer.write("\n" + newAnimalData);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
     private void handleYes(Stage gameStage) {
         if (totalQuestionsAsked < maxQuestions) {
@@ -278,11 +424,11 @@ public class App extends Application {
                 totalQuestionsAsked++;
                 updateQuestion();
             } else {
-                showAlert("Resultado", "No se encontró un animal con estas características");
+                showAlert("Resultado", "No se encontró un animal con estas características.");
                 endGame();
             }
         } else {
-            showAlert("Resultado", "Se alcanzó el límite de preguntas");
+            showAlert("Resultado", "Se alcanzó el límite de preguntas.");
             endGame();
         }
     }
@@ -294,11 +440,11 @@ public class App extends Application {
                 totalQuestionsAsked++;
                 updateQuestion();
             } else {
-                showAlert("Resultado", "No se encontró un animal con estas características");
+                showAlert("Resultado", "No se encontró un animal con estas características.");
                 endGame();
             }
         } else {
-            showAlert("Resultado", "Se alcanzó el límite de preguntas");
+            showAlert("Resultado", "Se alcanzó el límite de preguntas.");
             endGame();
         }
     }

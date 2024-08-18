@@ -100,6 +100,9 @@ public class DecisionTree {
     public void printTree() {
         printTree(root, "", "Root");
     }
+     public List<String> getQuestions() {
+        return questions;
+    }
 
     // Método recursivo que imprime cada nodo con la indentación correspondiente
     private void printTree(DecisionTreeNode node, String prefix, String childLabel) {
