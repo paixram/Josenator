@@ -298,8 +298,8 @@ public class App extends Application {
         applyButtonStyle(noButton);
 
         yesButton.setOnAction(e -> {
-            animalsStage.close();
-            askForNewAnimal();
+            //animalsStage.close();
+            askToAddAnimal();
         });
 
         noButton.setOnAction(e -> animalsStage.close());
