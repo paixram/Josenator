@@ -219,12 +219,12 @@ public class App extends Application {
         } else {
             List<String> possibleAnimals = getPossibleAnimals(currentNode);
             if (possibleAnimals.size() == 1) {
-                // Si solo queda un animal, muestra el mensaje estilizado
-                showFinalAnimalMessage(possibleAnimals.get(0));
+                // Mostrar un mensaje personalizado cuando solo quede un animal
+                showPossibleAnimals(possibleAnimals, true);
             } else if (possibleAnimals.isEmpty()) {
                 showAddAnimalPrompt();
             } else {
-                showPossibleAnimals(possibleAnimals);
+                showPossibleAnimals(possibleAnimals, false);
             }
             endGame();
         }
@@ -298,11 +298,16 @@ public class App extends Application {
         return animals;
     }
 
-    private void showPossibleAnimals(List<String> possibleAnimals) {
+    private void showPossibleAnimals(List<String> possibleAnimals, boolean isSingleAnimal) {
         Stage animalsStage = new Stage();
         animalsStage.setTitle("Posibles Animales");
 
-        Label resultLabel = new Label("No estoy seguro, pero podría ser uno de estos animales:");
+        // Mensaje personalizado según si hay un solo animal o más
+        String message = isSingleAnimal 
+            ? "El animal que estás pensando es: " 
+            : "No estoy seguro, pero podría ser uno de estos animales:";
+
+        Label resultLabel = new Label(message);
         resultLabel.setStyle("-fx-font-family: 'Arial'; -fx-font-size: 16px; -fx-font-weight: bold;");
         resultLabel.setAlignment(Pos.CENTER);
 
@@ -328,7 +333,7 @@ public class App extends Application {
         applyButtonStyle(noButton);
 
         yesButton.setOnAction(e -> {
-            //animalsStage.close();
+            animalsStage.close();
             askForNewAnimal();
         });
 
