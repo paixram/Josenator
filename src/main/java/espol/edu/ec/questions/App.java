@@ -252,10 +252,12 @@ public class App extends Application {
     private List<String> getPossibleAnimals(DecisionTree.DecisionTreeNode node) {
         List<String> animals = new ArrayList<>();
         if (node.isLeaf()) {
-            if (!node.getQuestionOrAnimal().equals("No hay animal que coincida")) {
+            // Solo agrega el animal si no es la frase "No hay animal que coincida"
+            if (!node.getQuestionOrAnimal().equalsIgnoreCase("No hay animal que coincida.")) {
                 animals.add(node.getQuestionOrAnimal());
             }
         } else {
+            // Recursivamente buscar en las ramas "Sí" y "No"
             if (node.getYesBranch() != null) {
                 animals.addAll(getPossibleAnimals(node.getYesBranch()));
             }
