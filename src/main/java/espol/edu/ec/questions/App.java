@@ -333,7 +333,6 @@ public class App extends Application {
         applyButtonStyle(noButton);
 
         yesButton.setOnAction(e -> {
-            animalsStage.close();
             askForNewAnimal();
         });
 
