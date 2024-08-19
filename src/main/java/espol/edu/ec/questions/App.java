@@ -299,7 +299,7 @@ public class App extends Application {
 
         yesButton.setOnAction(e -> {
             //animalsStage.close();
-            askToAddAnimal();
+            askForNewAnimal();
         });
 
         noButton.setOnAction(e -> animalsStage.close());
