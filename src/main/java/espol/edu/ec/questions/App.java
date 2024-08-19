@@ -218,14 +218,44 @@ public class App extends Application {
             endGame();
         } else {
             List<String> possibleAnimals = getPossibleAnimals(currentNode);
-            if (possibleAnimals.isEmpty()) {
-                showAddAnimalPrompt(); 
+            if (possibleAnimals.size() == 1) {
+                // Si solo queda un animal, muestra el mensaje estilizado
+                showFinalAnimalMessage(possibleAnimals.get(0));
+            } else if (possibleAnimals.isEmpty()) {
+                showAddAnimalPrompt();
             } else {
-                showPossibleAnimals(possibleAnimals); 
+                showPossibleAnimals(possibleAnimals);
             }
             endGame();
         }
     }
+    
+    private void showFinalAnimalMessage(String animalName) {
+        Stage messageStage = new Stage();
+        messageStage.setTitle("¡Adiviné tu animal!");
+
+        Label messageLabel = new Label("El animal que estás pensando es: " + animalName);
+        messageLabel.setStyle("-fx-font-family: 'Arial'; -fx-font-size: 18px; -fx-text-fill: #ffffff; -fx-font-weight: bold;");
+        messageLabel.setWrapText(true);
+        messageLabel.setAlignment(Pos.CENTER);
+
+        VBox layout = new VBox(20, messageLabel);
+        layout.setPadding(new Insets(30));
+        layout.setAlignment(Pos.CENTER);
+        layout.setBackground(new Background(new BackgroundFill(
+                new LinearGradient(0, 0, 0, 1, true, null,
+                        new Stop(0, Color.web("#4CAF50")),
+                        new Stop(1, Color.web("#45a049"))
+                ),
+                new CornerRadii(10), Insets.EMPTY
+        )));
+        layout.setStyle("-fx-border-color: #ffffff; -fx-border-width: 2px; -fx-border-radius: 10;");
+
+        Scene scene = new Scene(layout, 400, 200);
+        messageStage.setScene(scene);
+        messageStage.showAndWait();
+    }
+    
     /*private void updateQuestion() {
         if (currentNode != null && !currentNode.isLeaf() && totalQuestionsAsked < maxQuestions) {
             questionLabel.setText(currentNode.getQuestionOrAnimal());
@@ -330,17 +360,25 @@ public class App extends Application {
         alert.setHeaderText("No se encontró un animal con estas características.");
         alert.setContentText("¿Te gustaría agregar un nuevo animal?");
 
-        ButtonType yesButton = new ButtonType("Sí");
-        ButtonType noButton = new ButtonType("No");
-        alert.getButtonTypes().setAll(yesButton, noButton);
+        ButtonType yesButtonType = new ButtonType("Sí");
+        ButtonType noButtonType = new ButtonType("No");
+        alert.getButtonTypes().setAll(yesButtonType, noButtonType);
 
+        // Mostrar el cuadro de diálogo y obtener el botón seleccionado
         alert.showAndWait().ifPresent(type -> {
-            if (type == yesButton) {
+            if (type == yesButtonType) {
                 askForNewAnimal();
             } else {
                 endGame();
             }
         });
+
+        // Aplicar estilos después de que los botones se han creado
+        Button yesButton = (Button) alert.getDialogPane().lookupButton(yesButtonType);
+        Button noButton = (Button) alert.getDialogPane().lookupButton(noButtonType);
+
+        applyButtonStyle(yesButton);
+        applyButtonStyle(noButton);
     }
 
     private void showAddAnimalPrompt() {
@@ -459,6 +497,8 @@ public class App extends Application {
         scrollPane.setPrefViewportHeight(300);
 
         Button saveButton = new Button("Siguiente");
+
+        // Aplica el estilo del botón "Iniciar Juego"
         applyButtonStyle(saveButton);
 
         saveButton.setOnAction(e -> {
